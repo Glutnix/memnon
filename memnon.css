@@ -22,3 +22,9 @@ td {
 	border: 1px solid #333;
 	padding: 0;
 }
+.found {
+	color: #0c0;
+}
+.oops {
+	color: #c00;
+}

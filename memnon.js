@@ -5,6 +5,12 @@
 	var gameState = "gameover";
 	var foundCoins = 0;
 	var gameTimeout;
+	var status = document.querySelector("#status");
+	var levelStatus = document.querySelector("#level");
+	var levels = [3, 5, 7, 10, 10];
+	var memoryTime = 7000;
+	var recallTime = 7000;
+	var currentLevel = 0;
 
 	function initBoard() {
 		board = [];
@@ -18,8 +24,16 @@
 			var b = document.querySelector("#grid_" + i);
 			b.innerHTML = "";
 			b.disabled = false;
+			b.className = "";
 		}
 	}
+
+	function enableBoard () {
+		for (var i = 0; i < 49; i += 1) {
+			var b = document.querySelector("#grid_" + i);
+			b.disabled = false;
+		}
+	}	
 
 	function showBoard () {
 		for (var i = 0; i < 49; i += 1) {
@@ -60,6 +74,9 @@
 				case "guess":
 					enterGuess(index);
 					break;
+				case "finished":
+					currentLevel = 0;
+					// no break
 				case "gameover":
 					// no break
 				case "win":
@@ -77,10 +94,13 @@
 			var b = document.querySelector("#grid_" + index);
 			b.innerHTML = symbol;
 			b.disabled = true;
+			b.className = "found";
 		} else {
+			enableBoard();
 			showBoard();
 			var b = document.querySelector("#grid_" + index);
 			b.innerHTML = "&times;";
+			b.className = "oops";
 			startGameOver();
 		}
 		checkForWin();
@@ -90,14 +110,25 @@
 		clearTimeout(gameTimeout);
 		showBoard();
 		gameState = "gameover";
+		currentLevel = 0;
+		status.innerHTML = "Game over! Click to play again.";
 		console.log("Game over.");
 
 	}
 
 	function checkForWin() {
-		if (foundCoins === 7) {
-			gameState = "win";
-			console.log("You win!");
+		if (foundCoins === levels[ currentLevel ]) {
+			clearTimeout(gameTimeout);
+			enableBoard();
+			if (currentLevel + 1 === levels.length) {
+				gameState = "finished";
+				status.innerHTML = "Congratulations! You have defeated Memnon!";
+			} else {
+				gameState = "win";
+				currentLevel += 1;
+				console.log("You win!");
+				status.innerHTML = "You Win! Click to play again.";
+			}
 		}
 	}
 
@@ -108,9 +139,12 @@
 	function startGame() {
 		gameState = "show";
 		clearBoard();
-		shuffleBoard(7);
+		shuffleBoard( levels[ currentLevel ] );
 		showBoard();
-		gameTimeout = setTimeout(startGuess, 7000); // ms
+		levelStatus.innerHTML = "Level " + currentLevel +
+			" of " + (levels.length-1);
+		status.innerHTML = "Memorise the location of these coins.";
+		gameTimeout = setTimeout(startGuess, memoryTime); // ms
 	}
 
 	function startGuess() {
@@ -121,8 +155,10 @@
 		foundCoins = 0;
 		clearBoard();
 		
+		status.innerHTML = "Click to recall where the coins were.";
+	
 		clearTimeout(gameTimeout);
-		gameTimeout = setTimeout(startGameOver, 7000);
+		gameTimeout = setTimeout(startGameOver, recallTime);
 	}
 
 	addButtonListeners();
